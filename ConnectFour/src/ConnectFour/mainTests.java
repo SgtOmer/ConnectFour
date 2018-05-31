@@ -229,8 +229,10 @@ public class mainTests {
 			{'X','O','O','X','O'}
 		};
 		board.board=full;
+		int turn = board.turn;
 		board.setMove(0);
 		assertNotEquals(nullOnBoard, board.board[0][0]);
+		assertEquals(turn+1, board.turn);
 	}
 	
 	@Test
@@ -243,8 +245,10 @@ public class mainTests {
 			{'X','O','O','X','O'}
 		};
 		board.board=full;
+		int turn = board.turn;
 		board.delMove(0);
 		assertEquals(nullOnBoard, board.board[0][0]);
+		assertEquals(turn-1, board.turn);
 	}
 	
 	@Test

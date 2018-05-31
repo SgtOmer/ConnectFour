@@ -6,14 +6,15 @@ public class Main {
 	
 	final static char nullOnBoard='0';
 	final static char xOnBoard='X';
-	final static char oOnBoard='O';
+	final static char oOnBoard='Y';
 	final static int cols=7;
 	final static int rows=6;
+	public static Board board;
 	
 	
 	static Scanner reader = new Scanner(System.in);
 	public static void main(String[] args) {
-		Board board = new Board(6,7);
+		board = new Board(6,7);
 		int turn=0;
 		int winner=0;
 		int move;

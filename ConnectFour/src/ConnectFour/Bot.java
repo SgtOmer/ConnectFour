@@ -4,7 +4,7 @@ public class Bot {
 	
 	final static char nullOnBoard='0';
 	final static char xOnBoard='X';
-	final static char oOnBoard='O';
+	final static char oOnBoard='Y';
 	Board board;
 	char sign;
 	char enemy;
@@ -22,7 +22,7 @@ public class Bot {
 		int bestMove=-1;
 		int bestScore = (bot) ? Integer.MIN_VALUE : Integer.MAX_VALUE;
 		int score;
-		if (turn==8 || board.winner()!=0 || board.isFull()){
+		if (turn == 9 || board.winner() != 0 || board.isFull()) {
 			bestScore = calculate();
 		} else {
 			for (int i=0 ; i<board.board[0].length ; i++){
@@ -30,7 +30,7 @@ public class Bot {
 					board.setMove(i);
 					score = makeMove(turn+1, !bot)[0];
 					if (turn == 0)
-						System.out.println("turn: 1 move: "+(i+1)+" score: "+score);
+						System.out.println("move: "+(i+1)+" score: "+score);
 					if (bot){
 						if (score > bestScore){
 							bestScore = score;
