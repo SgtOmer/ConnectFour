@@ -18,17 +18,17 @@ public class Bot {
 			enemy=xOnBoard;
 	}
 	
-	public int[] makeMove(int turn, boolean bot){
+	public int[] makeMove(int turn, boolean bot, int alpha, int beta) {
 		int bestMove=-1;
 		int bestScore = (bot) ? Integer.MIN_VALUE : Integer.MAX_VALUE;
 		int score;
-		if (turn == 9 || board.winner() != 0 || board.isFull()) {
+		if (turn == 10 || board.winner() != 0 || board.isFull()) {
 			bestScore = calculate();
 		} else {
 			for (int i=0 ; i<board.board[0].length ; i++){
 				if (board.isLegal(i)){
 					board.setMove(i);
-					score = makeMove(turn+1, !bot)[0];
+					score = makeMove(turn+1, !bot, alpha, beta)[0];
 					if (turn == 0)
 						System.out.println("move: "+(i+1)+" score: "+score);
 					if (bot){
@@ -36,10 +36,20 @@ public class Bot {
 							bestScore = score;
 							bestMove = i;
 						}
+						alpha = Math.max(bestScore, alpha);
+						if (alpha >= beta) {
+							board.delMove(i);
+							break;
+						}
 					} else {
 						if (score < bestScore){
 							bestScore = score;
 							bestMove = i;
+						}
+						beta = Math.min(bestScore, beta);
+						if (beta <= alpha) {
+							board.delMove(i);
+							break;
 						}
 					}
 					board.delMove(i);
@@ -47,6 +57,10 @@ public class Bot {
 			}
 		}
 		return new int[] {bestScore, bestMove};
+	}
+	
+	public int[] makeMove(int turn, boolean bot){
+		return makeMove(turn, bot, Integer.MIN_VALUE, Integer.MAX_VALUE);
 	}
 	
 	public int calculate(){
