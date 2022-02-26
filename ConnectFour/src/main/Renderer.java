@@ -1,4 +1,4 @@
-package ConnectFour;
+package main;
 
 import java.awt.Graphics;
 
@@ -12,7 +12,7 @@ public class Renderer extends JPanel{
 	protected void paintComponent(Graphics g) {
 		super.paintComponent(g);
 		
-		Main.board.repaint(g);
+//		Main.board.repaint(g);
 	}
 	
 }
