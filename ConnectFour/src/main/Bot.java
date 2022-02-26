@@ -10,7 +10,7 @@ public class Bot {
     private final char enemy;
 
     public Bot(Board board, char sign) {
-        this.board = new Board(board);
+        this.board = board;
         this.sign = sign;
         if (sign == X_ON_BOARD) {
             enemy = O_ON_BOARD;
@@ -64,33 +64,10 @@ public class Bot {
     }
 
     public int calculate() {
-        int score = 0;
-
-        for (int i = 0; i < board.getBoard().length; i++) {
-            score += calculateLine(board.getBoard()[i]);
-        }
-
-        for (int i = 0; i < board.getBoard()[0].length; i++) {
-            score += calculateLine(board.getCol(i));
-        }
-
-        for (int i = 0; i < board.getBoard()[0].length - 3; i++) {
-            score += calculateLine(board.getMainDiagonal(0, i));
-        }
-
-        for (int i = 1; i < board.getBoard().length - 3; i++) {
-            score += calculateLine(board.getMainDiagonal(i, 0));
-        }
-
-        for (int i = board.getBoard()[0].length - 1; i > 2; i--) {
-            score += calculateLine(board.getSecDiagonal(0, i));
-        }
-
-        for (int i = 1; i < board.getBoard().length - 3; i++) {
-            score += calculateLine(board.getSecDiagonal(i, board.getBoard()[0].length - 1));
-        }
-
-        return score;
+        return board.getAllArrays().stream()
+                .mapToInt(this::calculateLine)
+                .reduce(Integer::sum)
+                .orElse(0);
     }
 
     public int calculateLine(char[] line) {

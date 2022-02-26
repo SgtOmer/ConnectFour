@@ -3,11 +3,16 @@ package main;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
+import static main.Utils.NO_WINNER;
 import static main.Utils.NULL_ON_BOARD;
+import static main.Utils.O_WON;
 import static main.Utils.X_ON_BOARD;
 import static main.Utils.O_ON_BOARD;
+import static main.Utils.X_WON;
 
 @Getter
 @Setter
@@ -61,67 +66,14 @@ public class Board /*implements ActionListener, Runnable, MouseListener*/ {
         turn = 0;
     }
 
-    public char[] getCol(int index) {
-        char[] col = new char[board.length];
-        for (int i = 0; i < board.length; i++)
-            col[i] = board[i][index];
-        return col;
-    }
-
-    public char[] getMainDiagonal(int row, int col) {
-        char[] diagonal = new char[Math.min(board.length - row, board[0].length - col)];
-        for (int i = 0; i < diagonal.length; i++)
-            diagonal[i] = board[row + i][col + i];
-        return diagonal;
-    }
-
-    public char[] getSecDiagonal(int row, int col) {
-        char[] diagonal = new char[Math.min(board.length - row, col + 1)];
-        for (int i = 0; i < diagonal.length; i++)
-            diagonal[i] = board[row + i][col - i];
-        return diagonal;
-    }
-
     public int winner() {
-        int winner;
+        List<char[]> arrays = getAllArrays();
 
-        for (int i = 0; i < rows; i++) {
-            winner = arrayWinner(board[i]);
-            if (winner != 0)
-                return winner;
-        }
-
-        for (int i = 0; i < cols; i++) {
-            winner = arrayWinner(getCol(i));
-            if (winner != 0)
-                return winner;
-        }
-
-        for (int i = 0; i < cols - 3; i++) {
-            winner = arrayWinner(getMainDiagonal(0, i));
-            if (winner != 0)
-                return winner;
-        }
-
-        for (int i = 1; i < rows - 3; i++) {
-            winner = arrayWinner(getMainDiagonal(i, 0));
-            if (winner != 0)
-                return winner;
-        }
-
-        for (int i = cols - 1; i > 2; i--) {
-            winner = arrayWinner(getSecDiagonal(0, i));
-            if (winner != 0)
-                return winner;
-        }
-
-        for (int i = 1; i < rows - 3; i++) {
-            winner = arrayWinner(getSecDiagonal(i, cols - 1));
-            if (winner != 0)
-                return winner;
-        }
-
-        return 0;
+        return arrays.stream()
+                .mapToInt(Board::arrayWinner)
+                .filter((int winner) -> winner != NO_WINNER)
+                .findFirst()
+                .orElse(NO_WINNER);
     }
 
     public int getLowest(int col) {
@@ -141,16 +93,16 @@ public class Board /*implements ActionListener, Runnable, MouseListener*/ {
     }
 
     public boolean setMove(int move) {
-        if (isLegal(move)) {
-            int lowest = getLowest(move);
-            if (turn % 2 == 0)
-                board[lowest][move] = X_ON_BOARD;
-            else
-                board[lowest][move] = O_ON_BOARD;
-            turn++;
-            return true;
-        }
-        return false;
+        if (!isLegal(move))
+            return false;
+
+        int lowest = getLowest(move);
+        if (turn++ % 2 == 0)
+            board[lowest][move] = X_ON_BOARD;
+        else
+            board[lowest][move] = O_ON_BOARD;
+
+        return true;
     }
 
     public boolean isFull() {
@@ -180,12 +132,57 @@ public class Board /*implements ActionListener, Runnable, MouseListener*/ {
         for (int i = 0; i < array.length - 3; i++) {
             if (array[i] == array[i + 1] && array[i + 2] == array[i + 3] && array[i] == array[i + 2]) {
                 if (array[i] == X_ON_BOARD)
-                    return 1;
+                    return X_WON;
                 else if (array[i] == O_ON_BOARD)
-                    return 2;
+                    return O_WON;
             }
         }
-        return 0;
+        return NO_WINNER;
+    }
+
+    public List<char[]> getAllArrays() {
+        List<char[]> arrays = new ArrayList<>();
+
+        for (int i = 0; i < rows; i++)
+            arrays.add(board[i]);
+
+        for (int i = 0; i < cols; i++)
+            arrays.add(getCol(i));
+
+        for (int i = 0; i < cols - 3; i++)
+            arrays.add(getMainDiagonal(0, i));
+
+        for (int i = 1; i < rows - 3; i++)
+            arrays.add(getMainDiagonal(i, 0));
+
+        for (int i = cols - 1; i > 2; i--)
+            arrays.add(getSecDiagonal(0, i));
+
+        for (int i = 1; i < rows - 3; i++)
+            arrays.add(getSecDiagonal(i, cols - 1));
+
+        return arrays;
+    }
+
+    public char[] getCol(int index) {
+        char[] col = new char[board.length];
+        for (int i = 0; i < board.length; i++)
+            col[i] = board[i][index];
+        return col;
+    }
+
+    public char[] getMainDiagonal(int row, int col) {
+        char[] diagonal = new char[Math.min(board.length - row, board[0].length - col)];
+        for (int i = 0; i < diagonal.length; i++)
+            diagonal[i] = board[row + i][col + i];
+        return diagonal;
+    }
+
+    public char[] getSecDiagonal(int row, int col) {
+        char[] diagonal = new char[Math.min(board.length - row, col + 1)];
+        for (int i = 0; i < diagonal.length; i++)
+            diagonal[i] = board[row + i][col - i];
+        return diagonal;
     }
 	
 	/*public void repaint(Graphics g){

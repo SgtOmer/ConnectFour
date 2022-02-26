@@ -32,7 +32,7 @@ public class Main {
                     turn++;
                 } while (turn < 42 && winner == 0);
             } else {
-                Bot bot;
+                Bot bot = new Bot(board, O_ON_BOARD);
                 do {
                     if (turn % 2 == 0) {
                         System.out.println("enter your column number to play");
@@ -42,7 +42,6 @@ public class Main {
                             continue;
                         }
                     } else {
-                        bot = new Bot(board, O_ON_BOARD);
                         move = bot.makeMove(0, true)[1];
                         board.setMove(move);
                         System.out.println(move + 1);
@@ -53,15 +52,19 @@ public class Main {
                     turn++;
                 } while (turn < 42 && winner == 0);
             }
-            if (winner != 0) {
-                if (winner == 1)
-                    System.out.println("the first player won");
-                else
-                    System.out.println("the second player won");
-            } else
-                System.out.println("there was a tie");
+            announceWinner(winner);
             System.out.println("would you like to play again? 1-yes 2-no");
             again = reader.nextInt();
         } while (again == 1);
+    }
+
+    public static void announceWinner(int winner) {
+        if (winner != 0) {
+            if (winner == 1)
+                System.out.println("the first player won");
+            else
+                System.out.println("the second player won");
+        } else
+            System.out.println("there was a tie");
     }
 }

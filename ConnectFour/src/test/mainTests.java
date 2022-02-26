@@ -11,6 +11,9 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static test.TestUtils.NO_WINNER;
+import static test.TestUtils.O_WON;
+import static test.TestUtils.X_WON;
 import static test.TestUtils.nullOnBoard;
 import static test.TestUtils.xOnBoard;
 import static test.TestUtils.oOnBoard;
@@ -107,9 +110,9 @@ public class mainTests {
         char[] xWins = new char[]{nullOnBoard, oOnBoard, xOnBoard, xOnBoard, xOnBoard, xOnBoard, oOnBoard};
         char[] yWins = new char[]{nullOnBoard, nullOnBoard, oOnBoard, oOnBoard, oOnBoard, oOnBoard, oOnBoard};
         char[] noWinner = new char[]{nullOnBoard, nullOnBoard, xOnBoard, oOnBoard, nullOnBoard, xOnBoard, nullOnBoard};
-        assertEquals(1, arrayWinner(xWins));
-        assertEquals(2, arrayWinner(yWins));
-        assertEquals(0, arrayWinner(noWinner));
+        assertEquals(X_WON, arrayWinner(xWins));
+        assertEquals(O_WON, arrayWinner(yWins));
+        assertEquals(NO_WINNER, arrayWinner(noWinner));
     }
 
     @Test
@@ -122,7 +125,7 @@ public class mainTests {
                 {xOnBoard, nullOnBoard, nullOnBoard, xOnBoard, nullOnBoard}
         };
         board.setBoard(xWins);
-        assertEquals(1, board.winner());
+        assertEquals(X_WON, board.winner());
 
         char[][] yWins = new char[][]{
                 {nullOnBoard, nullOnBoard, oOnBoard, oOnBoard, oOnBoard},
@@ -131,7 +134,7 @@ public class mainTests {
                 {oOnBoard, nullOnBoard, oOnBoard, oOnBoard, oOnBoard}
         };
         board.setBoard(yWins);
-        assertEquals(2, board.winner());
+        assertEquals(O_WON, board.winner());
 
         char[][] noWinner = new char[][]{
                 {nullOnBoard, nullOnBoard, xOnBoard, oOnBoard, nullOnBoard},
@@ -140,7 +143,7 @@ public class mainTests {
                 {nullOnBoard, nullOnBoard, nullOnBoard, oOnBoard, oOnBoard},
         };
         board.setBoard(noWinner);
-        assertEquals(0, board.winner());
+        assertEquals(NO_WINNER, board.winner());
 
         Board newB = new Board(6, 7);
         char[][] no = new char[][]{
@@ -152,7 +155,7 @@ public class mainTests {
                 {nullOnBoard, oOnBoard, oOnBoard, xOnBoard, nullOnBoard, oOnBoard, oOnBoard},
         };
         newB.setBoard(no);
-        assertEquals(0, newB.winner());
+        assertEquals(NO_WINNER, newB.winner());
     }
 
     @Test
