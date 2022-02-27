@@ -1,3 +1,0 @@
-dependencies {
-    compile(group:"lombok",module:"lombok",version:"1.18.20")
-}
