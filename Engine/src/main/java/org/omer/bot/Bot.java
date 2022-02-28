@@ -1,10 +1,15 @@
-package org.omer;
+package org.omer.bot;
+
+import org.omer.Board;
+import org.omer.enums.Player;
 
 import static org.omer.Utils.NULL_ON_BOARD;
 import static org.omer.Utils.X_ON_BOARD;
 import static org.omer.Utils.O_ON_BOARD;
 
 public class Bot {
+    private static final int[] MOVE_ORDER_CHECK = {3, 2, 4, 1, 5, 0, 6};
+
     private final Board board;
     private final char sign;
     private final char enemy;
@@ -18,49 +23,44 @@ public class Bot {
             enemy = X_ON_BOARD;
     }
 
-    public int[] makeMove(int turn, boolean bot, int alpha, int beta) {
+    public int[] makeMove(int turn, Player player, int alpha, int beta) {
         int bestMove = -1;
-        int bestScore = (bot) ? Integer.MIN_VALUE : Integer.MAX_VALUE;
+        int bestScore = Integer.MIN_VALUE * player.getValue();
         int score;
-        if (turn == 10 || board.winner() != 0 || board.isFull()) {
-            bestScore = calculate();
-        } else {
-            for (int i = 0; i < board.getBoard()[0].length; i++) {
-                if (board.isLegal(i)) {
-                    board.setMove(i);
-                    score = makeMove(turn + 1, !bot, alpha, beta)[0];
-                    if (turn == 0)
-                        System.out.println("move: " + (i + 1) + " score: " + score);
-                    if (bot) {
-                        if (score > bestScore) {
-                            bestScore = score;
-                            bestMove = i;
-                        }
-                        alpha = Math.max(bestScore, alpha);
-                        if (alpha >= beta) {
-                            board.delMove(i);
-                            break;
-                        }
-                    } else {
-                        if (score < bestScore) {
-                            bestScore = score;
-                            bestMove = i;
-                        }
-                        beta = Math.min(bestScore, beta);
-                        if (beta <= alpha) {
-                            board.delMove(i);
-                            break;
-                        }
-                    }
-                    board.delMove(i);
-                }
+        if (turn == 12 || board.winner() != 0 || board.isFull())
+            return new int[]{calculate(), bestMove};
+        for (int i: MOVE_ORDER_CHECK) {
+            if (!board.isLegal(i))
+                continue;
+
+            board.setMove(i);
+            score = makeMove(turn + 1, Player.getOther(player), alpha, beta)[0];
+            board.delMove(i);
+
+            if (turn == 0)
+                System.out.println("move: " + (i + 1) + " score: " + score);
+
+            if (score * player.getValue() > 8500)
+                return new int[]{score, i};
+
+            if (score * player.getValue() > bestScore) {
+                bestScore = score;
+                bestMove = i;
             }
+
+            if (player == Player.BOT)
+                alpha = Math.max(bestScore, alpha);
+            else
+                beta = Math.min(bestScore, beta);
+
+            if (alpha >= beta)
+                break;
         }
         return new int[]{bestScore, bestMove};
     }
 
-    public int makeMove(int turn, boolean bot) {
-        return makeMove(turn, bot, Integer.MIN_VALUE, Integer.MAX_VALUE)[1];
+    public int makeMove(int turn, Player player) {
+        return makeMove(turn, player, Integer.MIN_VALUE, Integer.MAX_VALUE)[1];
     }
 
     public int calculate() {

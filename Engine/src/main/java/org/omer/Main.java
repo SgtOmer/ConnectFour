@@ -1,5 +1,8 @@
 package org.omer;
 
+import org.omer.bot.Bot;
+import org.omer.enums.Player;
+
 import java.util.Scanner;
 
 import static org.omer.Utils.O_ON_BOARD;
@@ -43,7 +46,7 @@ public class Main {
                             continue;
                         }
                     } else {
-                        move = bot.makeMove(0, true);
+                        move = bot.makeMove(0, Player.BOT);
                         board.setMove(move);
                         System.out.println(move + 1);
                     }
