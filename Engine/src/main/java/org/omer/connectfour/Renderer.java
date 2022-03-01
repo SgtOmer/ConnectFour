@@ -1,4 +1,4 @@
-package org.omer;
+package org.omer.connectfour;
 
 import java.awt.Graphics;
 

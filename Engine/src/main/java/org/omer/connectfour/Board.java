@@ -1,4 +1,4 @@
-package org.omer;
+package org.omer.connectfour;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -8,12 +8,12 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.IntStream;
 
-import static org.omer.Utils.NO_WINNER;
-import static org.omer.Utils.NULL_ON_BOARD;
-import static org.omer.Utils.O_WON;
-import static org.omer.Utils.X_ON_BOARD;
-import static org.omer.Utils.O_ON_BOARD;
-import static org.omer.Utils.X_WON;
+import static org.omer.connectfour.Utils.NO_WINNER;
+import static org.omer.connectfour.Utils.NULL_ON_BOARD;
+import static org.omer.connectfour.Utils.O_WON;
+import static org.omer.connectfour.Utils.X_ON_BOARD;
+import static org.omer.connectfour.Utils.O_ON_BOARD;
+import static org.omer.connectfour.Utils.X_WON;
 
 @Getter
 @Setter

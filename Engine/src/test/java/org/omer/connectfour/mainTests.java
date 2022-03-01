@@ -1,21 +1,21 @@
-package org.omer;
+package org.omer.connectfour;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.omer.bot.Bot;
+import org.omer.connectfour.bot.Bot;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
-import static org.omer.Board.arrayWinner;
-import static org.omer.TestUtils.NO_WINNER;
-import static org.omer.TestUtils.O_WON;
-import static org.omer.TestUtils.X_WON;
-import static org.omer.TestUtils.nullOnBoard;
-import static org.omer.TestUtils.xOnBoard;
-import static org.omer.TestUtils.oOnBoard;
+import static org.omer.connectfour.Board.arrayWinner;
+import static org.omer.connectfour.TestUtils.NO_WINNER;
+import static org.omer.connectfour.TestUtils.O_WON;
+import static org.omer.connectfour.TestUtils.X_WON;
+import static org.omer.connectfour.TestUtils.nullOnBoard;
+import static org.omer.connectfour.TestUtils.xOnBoard;
+import static org.omer.connectfour.TestUtils.oOnBoard;
 
 public class mainTests {
     private Board board;

@@ -1,4 +1,4 @@
-package org.omer.enums;
+package org.omer.connectfour.enums;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

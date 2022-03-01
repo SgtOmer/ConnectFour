@@ -1,21 +1,28 @@
-package org.omer;
+package org.omer.connectfour;
 
-import org.omer.bot.Bot;
-import org.omer.enums.Player;
+import org.omer.connectfour.bot.Bot;
+import org.omer.connectfour.enums.Player;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 import java.util.Scanner;
 
-import static org.omer.Utils.O_ON_BOARD;
+import static org.omer.connectfour.Utils.O_ON_BOARD;
 
+@SpringBootApplication
 public class Main {
-    private static final Scanner reader = new Scanner(System.in);
+
+    public static void main(String[] args) {
+        SpringApplication.run(Main.class, args);
+    }
+
+    /*private static final Scanner reader = new Scanner(System.in);
     private static final Board board = new Board(Utils.ROWS, Utils.COLS);
 
     public static void main(String[] args) {
         int turn;
         int winner;
         int move;
-        int again;
         boolean human = false;
         do {
             board.reset();
@@ -24,12 +31,9 @@ public class Main {
             winner = 0;
             if (human) {
                 do {
-                    System.out.println("enter your column number to play");
-                    move = reader.nextInt() - 1;
-                    if (!board.setMove(move)) {
-                        System.out.println("your move was illeagal, please try again");
+                    if (!playerMove())
                         continue;
-                    }
+
                     board.show();
                     System.out.println();
                     winner = board.winner();
@@ -39,12 +43,8 @@ public class Main {
                 Bot bot = new Bot(board, O_ON_BOARD);
                 do {
                     if (turn % 2 == 0) {
-                        System.out.println("enter your column number to play");
-                        move = reader.nextInt() - 1;
-                        if (!board.setMove(move)) {
-                            System.out.println("your move was illeagal, please try again");
+                        if (!playerMove())
                             continue;
-                        }
                     } else {
                         move = bot.makeMove(0, Player.BOT);
                         board.setMove(move);
@@ -58,8 +58,17 @@ public class Main {
             }
             announceWinner(winner);
             System.out.println("would you like to play again? 1-yes 2-no");
-            again = reader.nextInt();
-        } while (again == 1);
+        } while (reader.nextInt() == 1);
+    }
+
+    public static boolean playerMove() {
+        System.out.println("enter your column number to play");
+        int move = reader.nextInt() - 1;
+        if (!board.setMove(move)) {
+            System.out.println("your move was illegal, please try again");
+            return false;
+        }
+        return true;
     }
 
     public static void announceWinner(int winner) {
@@ -70,5 +79,5 @@ public class Main {
                 System.out.println("the second player won");
         } else
             System.out.println("there was a tie");
-    }
+    }*/
 }

@@ -1,11 +1,11 @@
-package org.omer.bot;
+package org.omer.connectfour.bot;
 
-import org.omer.Board;
-import org.omer.enums.Player;
+import org.omer.connectfour.Board;
+import org.omer.connectfour.enums.Player;
 
-import static org.omer.Utils.NULL_ON_BOARD;
-import static org.omer.Utils.X_ON_BOARD;
-import static org.omer.Utils.O_ON_BOARD;
+import static org.omer.connectfour.Utils.NULL_ON_BOARD;
+import static org.omer.connectfour.Utils.X_ON_BOARD;
+import static org.omer.connectfour.Utils.O_ON_BOARD;
 
 public class Bot {
     private static final int[] MOVE_ORDER_CHECK = {3, 2, 4, 1, 5, 0, 6};
@@ -27,7 +27,7 @@ public class Bot {
         int bestMove = -1;
         int bestScore = Integer.MIN_VALUE * player.getValue();
         int score;
-        if (turn == 12 || board.winner() != 0 || board.isFull())
+        if (turn == 10 || board.winner() != 0 || board.isFull())
             return new int[]{calculate(), bestMove};
         for (int i: MOVE_ORDER_CHECK) {
             if (!board.isLegal(i))
