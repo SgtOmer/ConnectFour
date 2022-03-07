@@ -1,4 +1,4 @@
-package org.omer.connectfour;
+package org.omer.connectfour.model;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -8,12 +8,12 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.IntStream;
 
-import static org.omer.connectfour.Utils.NO_WINNER;
-import static org.omer.connectfour.Utils.NULL_ON_BOARD;
-import static org.omer.connectfour.Utils.O_WON;
-import static org.omer.connectfour.Utils.X_ON_BOARD;
-import static org.omer.connectfour.Utils.O_ON_BOARD;
-import static org.omer.connectfour.Utils.X_WON;
+import static org.omer.connectfour.utils.CONSTANTS.NO_WINNER;
+import static org.omer.connectfour.utils.CONSTANTS.NULL_ON_BOARD;
+import static org.omer.connectfour.utils.CONSTANTS.O_WON;
+import static org.omer.connectfour.utils.CONSTANTS.X_ON_BOARD;
+import static org.omer.connectfour.utils.CONSTANTS.O_ON_BOARD;
+import static org.omer.connectfour.utils.CONSTANTS.X_WON;
 
 @Getter
 @Setter
@@ -30,7 +30,7 @@ public class Board /*implements ActionListener, Runnable, MouseListener*/ {
         board = new char[rows][cols];
         this.cols = cols;
         this.rows = rows;
-        turn = 0;
+        reset();
 
 		/*JFrame jframe = new JFrame();
 
@@ -120,18 +120,6 @@ public class Board /*implements ActionListener, Runnable, MouseListener*/ {
         }
     }
 
-    public static int arrayWinner(char[] array) {
-        for (int i = 0; i < array.length - 3; i++) {
-            if (array[i] == array[i + 1] && array[i + 2] == array[i + 3] && array[i] == array[i + 2]) {
-                if (array[i] == X_ON_BOARD)
-                    return X_WON;
-                else if (array[i] == O_ON_BOARD)
-                    return O_WON;
-            }
-        }
-        return NO_WINNER;
-    }
-
     public List<char[]> getAllArrays() {
         List<char[]> arrays = new ArrayList<>();
 
@@ -175,6 +163,18 @@ public class Board /*implements ActionListener, Runnable, MouseListener*/ {
         for (int i = 0; i < diagonal.length; i++)
             diagonal[i] = board[row + i][col - i];
         return diagonal;
+    }
+
+    public static int arrayWinner(char[] array) {
+        for (int i = 0; i < array.length - 3; i++) {
+            if (array[i] == array[i + 1] && array[i + 2] == array[i + 3] && array[i] == array[i + 2]) {
+                if (array[i] == X_ON_BOARD)
+                    return X_WON;
+                else if (array[i] == O_ON_BOARD)
+                    return O_WON;
+            }
+        }
+        return NO_WINNER;
     }
 
     private int getLowest(int col) {

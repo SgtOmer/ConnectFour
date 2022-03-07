@@ -1,13 +1,7 @@
 package org.omer.connectfour;
 
-import org.omer.connectfour.bot.Bot;
-import org.omer.connectfour.enums.Player;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-
-import java.util.Scanner;
-
-import static org.omer.connectfour.Utils.O_ON_BOARD;
 
 @SpringBootApplication
 public class Main {

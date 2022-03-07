@@ -1,13 +1,16 @@
 package org.omer.connectfour.bot;
 
-import org.omer.connectfour.Board;
+import org.omer.connectfour.model.Board;
 import org.omer.connectfour.enums.Player;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import static org.omer.connectfour.Utils.NULL_ON_BOARD;
-import static org.omer.connectfour.Utils.X_ON_BOARD;
-import static org.omer.connectfour.Utils.O_ON_BOARD;
+import static org.omer.connectfour.utils.CONSTANTS.NULL_ON_BOARD;
+import static org.omer.connectfour.utils.CONSTANTS.X_ON_BOARD;
+import static org.omer.connectfour.utils.CONSTANTS.O_ON_BOARD;
 
 public class Bot {
+    private static final Logger LOGGER = LoggerFactory.getLogger(Bot.class);
     private static final int[] MOVE_ORDER_CHECK = {3, 2, 4, 1, 5, 0, 6};
 
     private final Board board;
@@ -38,7 +41,7 @@ public class Bot {
             board.delMove(i);
 
             if (turn == 0)
-                System.out.println("move: " + (i + 1) + " score: " + score);
+                LOGGER.debug("move: " + (i + 1) + " score: " + score);
 
             if (score * player.getValue() > 8500)
                 return new int[]{score, i};
