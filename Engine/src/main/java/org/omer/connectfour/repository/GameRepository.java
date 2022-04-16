@@ -26,10 +26,15 @@ public class GameRepository {
     }
 
     public UUID createGame() {
+        LOGGER.info("Creating a new game");
+
         Board board = new Board(CONSTANTS.ROWS, CONSTANTS.COLS);
         Bot bot = new Bot(board, O_ON_BOARD);
         Game game = new Game(board, bot);
+        LOGGER.info("Game {} as been created successfully", game.getUuid());
+
         games.put(game.getUuid(), game);
+
         return game.getUuid();
     }
 

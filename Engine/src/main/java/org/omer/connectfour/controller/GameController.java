@@ -1,6 +1,7 @@
 package org.omer.connectfour.controller;
 
 import org.omer.connectfour.repository.GameRepository;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -24,17 +25,17 @@ public class GameController {
     }
 
     @GetMapping("/create")
-    public UUID createGame() {
-        return gameRepository.createGame();
+    public ResponseEntity<UUID> createGame() {
+        return ResponseEntity.ok(gameRepository.createGame());
     }
 
     @GetMapping("/{uuid}/{move}")
-    public int setMove(@PathVariable String uuid, @PathVariable int move) {
-        return gameRepository.setMove(UUID.fromString(uuid), move);
+    public ResponseEntity<Integer> setMove(@PathVariable String uuid, @PathVariable int move) {
+        return ResponseEntity.ok(gameRepository.setMove(UUID.fromString(uuid), move));
     }
 
     @GetMapping("/boards/{uuid}")
-    public char[][] getBoard(@PathVariable String uuid) {
-        return gameRepository.getBoard(UUID.fromString(uuid));
+    public ResponseEntity<char[][]> getBoard(@PathVariable String uuid) {
+        return ResponseEntity.ok(gameRepository.getBoard(UUID.fromString(uuid)));
     }
 }

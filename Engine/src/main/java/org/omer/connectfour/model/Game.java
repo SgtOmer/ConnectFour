@@ -8,11 +8,11 @@ import org.omer.connectfour.enums.Player;
 import java.util.UUID;
 
 @Getter
-@EqualsAndHashCode
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Game {
-    private final UUID uuid;
-    @EqualsAndHashCode.Exclude private final Board board;
-    @EqualsAndHashCode.Exclude private final Bot bot;
+    @EqualsAndHashCode.Include private final UUID uuid;
+    private final Board board;
+    private final Bot bot;
 
     public Game(Board board, Bot bot) {
         uuid = UUID.randomUUID();
