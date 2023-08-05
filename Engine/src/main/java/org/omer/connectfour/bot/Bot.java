@@ -5,9 +5,9 @@ import org.omer.connectfour.enums.Player;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static org.omer.connectfour.utils.CONSTANTS.NULL_ON_BOARD;
-import static org.omer.connectfour.utils.CONSTANTS.X_ON_BOARD;
-import static org.omer.connectfour.utils.CONSTANTS.O_ON_BOARD;
+import static org.omer.connectfour.utils.Constants.NULL_ON_BOARD;
+import static org.omer.connectfour.utils.Constants.X_ON_BOARD;
+import static org.omer.connectfour.utils.Constants.O_ON_BOARD;
 
 public class Bot {
     private static final Logger LOGGER = LoggerFactory.getLogger(Bot.class);

@@ -8,12 +8,12 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.IntStream;
 
-import static org.omer.connectfour.utils.CONSTANTS.NO_WINNER;
-import static org.omer.connectfour.utils.CONSTANTS.NULL_ON_BOARD;
-import static org.omer.connectfour.utils.CONSTANTS.O_WON;
-import static org.omer.connectfour.utils.CONSTANTS.X_ON_BOARD;
-import static org.omer.connectfour.utils.CONSTANTS.O_ON_BOARD;
-import static org.omer.connectfour.utils.CONSTANTS.X_WON;
+import static org.omer.connectfour.utils.Constants.NO_WINNER;
+import static org.omer.connectfour.utils.Constants.NULL_ON_BOARD;
+import static org.omer.connectfour.utils.Constants.O_WON;
+import static org.omer.connectfour.utils.Constants.X_ON_BOARD;
+import static org.omer.connectfour.utils.Constants.O_ON_BOARD;
+import static org.omer.connectfour.utils.Constants.X_WON;
 
 @Getter
 @Setter

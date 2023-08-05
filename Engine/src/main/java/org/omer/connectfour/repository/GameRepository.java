@@ -1,6 +1,6 @@
 package org.omer.connectfour.repository;
 
-import org.omer.connectfour.utils.CONSTANTS;
+import org.omer.connectfour.utils.Constants;
 import org.omer.connectfour.bot.Bot;
 import org.omer.connectfour.model.Board;
 import org.omer.connectfour.model.Game;
@@ -13,7 +13,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-import static org.omer.connectfour.utils.CONSTANTS.O_ON_BOARD;
+import static org.omer.connectfour.utils.Constants.O_ON_BOARD;
 
 @Repository
 public class GameRepository {
@@ -28,7 +28,7 @@ public class GameRepository {
     public UUID createGame() {
         LOGGER.info("Creating a new game");
 
-        Board board = new Board(CONSTANTS.ROWS, CONSTANTS.COLS);
+        Board board = new Board(Constants.ROWS, Constants.COLS);
         Bot bot = new Bot(board, O_ON_BOARD);
         Game game = new Game(board, bot);
         LOGGER.info("Game {} as been created successfully", game.getUuid());

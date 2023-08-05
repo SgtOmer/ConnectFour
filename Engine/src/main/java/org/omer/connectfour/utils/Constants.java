@@ -3,7 +3,7 @@ package org.omer.connectfour.utils;
 import lombok.experimental.UtilityClass;
 
 @UtilityClass
-public class CONSTANTS {
+public class Constants {
 
     public final static char NULL_ON_BOARD = '0';
     public final static char X_ON_BOARD = 'X';
