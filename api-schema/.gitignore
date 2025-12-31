@@ -1,0 +1,8 @@
+# Generated code
+generated/
+
+# Node modules
+node_modules/
+
+# Build outputs
+build/

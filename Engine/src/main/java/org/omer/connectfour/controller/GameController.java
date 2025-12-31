@@ -1,41 +1,90 @@
 package org.omer.connectfour.controller;
 
-import org.omer.connectfour.repository.GameRepository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
+import org.omer.connectfour.api.GamesApi;
+import org.omer.connectfour.api.model.GameResponse;
+import org.omer.connectfour.api.model.MoveRequest;
+import org.omer.connectfour.api.model.MoveResponse;
+import org.omer.connectfour.service.GameService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Set;
 import java.util.UUID;
 
+/**
+ * REST Controller for the Connect Four Game API.
+ * Implements the generated GamesApi interface.
+ */
 @RestController
-@RequestMapping("/games")
-public class GameController {
-    private final GameRepository gameRepository;
+@Log4j2
+@RequiredArgsConstructor
+public class GameController implements GamesApi {
+    private final GameService gameService;
 
-    public GameController(GameRepository gameRepository) {
-        this.gameRepository = gameRepository;
+    /**
+     * Creates a new game.
+     *
+     * @return The created game response (201 Created).
+     */
+    @Override
+    public ResponseEntity<GameResponse> createGame() {
+        log.info("Received request to create game");
+        UUID uuid = gameService.createGame();
+        return ResponseEntity.status(HttpStatus.CREATED).body(gameService.getGameResponse(uuid));
     }
 
-    @GetMapping
-    public Set<UUID> getAllGames() {
-        return gameRepository.getAllGames();
+    /**
+     * Retrieves the state of a specific game.
+     *
+     * @param id The game UUID.
+     * @return The game response or 404 if not found.
+     */
+    @Override
+    public ResponseEntity<GameResponse> getGame(UUID id) {
+        log.debug("Received request to get game {}", id);
+        GameResponse response = gameService.getGameResponse(id);
+        if (response == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/create")
-    public ResponseEntity<UUID> createGame() {
-        return ResponseEntity.ok(gameRepository.createGame());
+    /**
+     * Deletes (abandons) a game.
+     *
+     * @param id The game UUID.
+     * @return 204 No Content, or 404 if not found.
+     */
+    @Override
+    public ResponseEntity<Void> deleteGame(UUID id) {
+        if (gameService.getGame(id) == null) {
+            return ResponseEntity.notFound().build();
+        }
+        gameService.removeGame(id);
+        return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/{uuid}/{move}")
-    public ResponseEntity<Integer> setMove(@PathVariable String uuid, @PathVariable int move) {
-        return ResponseEntity.ok(gameRepository.setMove(UUID.fromString(uuid), move));
-    }
-
-    @GetMapping("/boards/{uuid}")
-    public ResponseEntity<char[][]> getBoard(@PathVariable String uuid) {
-        return ResponseEntity.ok(gameRepository.getBoard(UUID.fromString(uuid)));
+    /**
+     * Processes a move in the game.
+     *
+     * @param id          The game UUID.
+     * @param moveRequest The move request.
+     * @return The move response, 404 if game missing, or 400 if invalid move.
+     */
+    @Override
+    public ResponseEntity<MoveResponse> makeMove(UUID id, MoveRequest moveRequest) {
+        log.debug("Received move request for game {}", id);
+        try {
+            MoveResponse response = gameService.makeMove(id, moveRequest);
+            if (response == null) {
+                return ResponseEntity.notFound().build();
+            }
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            log.warn("Invalid move request: {}", e.getMessage());
+            return ResponseEntity.badRequest().build();
+        }
     }
 }

@@ -1,0 +1,78 @@
+plugins {
+    id 'java'
+    id 'org.openapi.generator' version '7.18.0'
+}
+
+group = 'org.omer'
+version = '1.0.0'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // Jackson annotations for generated DTOs
+    implementation 'com.fasterxml.jackson.core:jackson-annotations:2.15.3'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.15.3'
+    
+    // Jakarta validation annotations
+    implementation 'jakarta.validation:jakarta.validation-api:3.0.2'
+    
+    // Jakarta annotation (for @Generated)
+    implementation 'jakarta.annotation:jakarta.annotation-api:2.1.1'
+    
+    // Jakarta Servlet API (for HttpServletResponse)
+    implementation 'jakarta.servlet:jakarta.servlet-api:6.0.0'
+    
+    // Spring framework
+    implementation 'org.springframework:spring-core:6.1.2'
+    implementation 'org.springframework:spring-web:6.1.2'
+    implementation 'org.springframework:spring-context:6.1.2'
+    
+    // Swagger annotations
+    implementation 'io.swagger.core.v3:swagger-annotations:2.2.19'
+}
+
+def openApiSpec = "${projectDir}/src/main/resources/openapi.yaml"
+def generatedJavaDir = "${projectDir}/generated/java"
+
+openApiGenerate {
+    generatorName = "spring"
+    inputSpec = openApiSpec
+    outputDir = generatedJavaDir
+    apiPackage = "org.omer.connectfour.api"
+    modelPackage = "org.omer.connectfour.api.model"
+    
+    configOptions = [
+        dateLibrary: "java8",
+        useJakartaEe: "true",
+        openApiNullable: "false",
+        interfaceOnly: "true",
+        useTags: "true",
+        skipDefaultInterface: "true",
+        documentationProvider: "none"
+    ]
+}
+
+// Add generated sources to the main source set
+sourceSets {
+    main {
+        java {
+            srcDir "${generatedJavaDir}/src/main/java"
+        }
+    }
+}
+
+// Ensure generation happens before compilation
+compileJava.dependsOn tasks.openApiGenerate
+
+// Clean generated files
+clean {
+    delete generatedJavaDir
+}
+
+// Validation task using redocly (requires npm install)
+task validateOpenApi(type: Exec) {
+    workingDir projectDir
+    commandLine 'cmd', '/c', 'npm run validate'
+}

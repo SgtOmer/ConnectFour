@@ -1,2 +1,3 @@
 rootProject.name = 'ConnectFour'
 include 'Engine'
+include 'api-schema'

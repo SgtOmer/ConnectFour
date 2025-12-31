@@ -38,6 +38,14 @@ public class GameRepository {
         return game.getUuid();
     }
 
+    public Game getGame(UUID uuid) {
+        return games.get(uuid);
+    }
+
+    public void removeGame(UUID uuid) {
+        games.remove(uuid);
+    }
+
     public int setMove(UUID uuid, int move) {
         return games.get(uuid).playMove(move);
     }

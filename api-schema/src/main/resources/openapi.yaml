@@ -1,0 +1,250 @@
+openapi: 3.0.3
+info:
+  title: Connect Four API
+  description: REST API for the Connect Four game
+  version: 1.0.0
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: /api
+    description: API base path
+
+# No authentication required for this game API
+security: []
+
+paths:
+  /games:
+    post:
+      summary: Create a new game
+      operationId: createGame
+      tags:
+        - Games
+      responses:
+        "201":
+          description: Game created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GameResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /games/{id}:
+    get:
+      summary: Get game state
+      operationId: getGame
+      tags:
+        - Games
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Game ID
+      responses:
+        "200":
+          description: Game state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GameResponse"
+        "404":
+          description: Game not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    delete:
+      summary: Delete/abandon a game
+      operationId: deleteGame
+      tags:
+        - Games
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Game ID
+      responses:
+        "204":
+          description: Game deleted successfully
+        "404":
+          description: Game not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /games/{id}/moves:
+    post:
+      summary: Make a move
+      operationId: makeMove
+      tags:
+        - Games
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Game ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MoveRequest"
+      responses:
+        "200":
+          description: Move executed successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MoveResponse"
+        "400":
+          description: Invalid move or game is over
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Game not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+components:
+  schemas:
+    GameStatus:
+      type: string
+      enum:
+        - PLAYER_TURN
+        - BOT_TURN
+        - PLAYER_WON
+        - BOT_WON
+        - DRAW
+      description: Current state of the game
+
+    WinnerEnum:
+      type: string
+      nullable: true
+      enum:
+        - PLAYER
+        - BOT
+        - null
+      description: Winner of the game (null if game is ongoing)
+
+    BoardCellEnum:
+      type: string
+      enum:
+        - "0"
+        - "X"
+        - "Y"
+      description: Cell content
+
+    Position:
+      type: object
+      required:
+        - column
+        - row
+      properties:
+        column:
+          type: integer
+          minimum: 0
+          maximum: 6
+          description: Column index (0-6)
+        row:
+          type: integer
+          minimum: 0
+          maximum: 5
+          description: Row index (0-5)
+
+    GameResponse:
+      type: object
+      required:
+        - id
+        - board
+        - status
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique game identifier
+        board:
+          type: array
+          items:
+            type: array
+            items:
+              $ref: "#/components/schemas/BoardCellEnum"
+          description: 6x7 game board (0=empty, X=player, Y=bot)
+        status:
+          $ref: "#/components/schemas/GameStatus"
+        winner:
+          $ref: "#/components/schemas/WinnerEnum"
+
+    MoveRequest:
+      type: object
+      required:
+        - column
+      properties:
+        column:
+          type: integer
+          minimum: 0
+          maximum: 6
+          description: Column to drop the piece in (0-6)
+
+    MoveResponse:
+      type: object
+      required:
+        - success
+        - board
+        - status
+      properties:
+        success:
+          type: boolean
+          description: Whether the move was successful
+        playerMove:
+          $ref: "#/components/schemas/Position"
+        botMove:
+          $ref: "#/components/schemas/Position"
+        board:
+          type: array
+          items:
+            type: array
+            items:
+              $ref: "#/components/schemas/BoardCellEnum"
+          description: Updated game board
+        status:
+          $ref: "#/components/schemas/GameStatus"
+        winner:
+          $ref: "#/components/schemas/WinnerEnum"
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+        - message
+      properties:
+        error:
+          type: string
+          enum:
+            - GAME_NOT_FOUND
+            - INVALID_MOVE
+            - GAME_OVER
+          description: Error code
+        message:
+          type: string
+          description: Human-readable error message

@@ -1,0 +1,16 @@
+{
+    "name": "connectfour-api-schema",
+    "version": "1.0.0",
+    "description": "OpenAPI schema and TypeScript types for Connect Four API",
+    "scripts": {
+        "validate": "redocly lint src/main/resources/openapi.yaml",
+        "generate:ts": "openapi-typescript src/main/resources/openapi.yaml -o generated/typescript/api.ts",
+        "generate": "npm run validate && npm run generate:ts",
+        "clean": "rimraf generated/typescript"
+    },
+    "devDependencies": {
+        "@redocly/cli": "^1.25.0",
+        "openapi-typescript": "^7.4.4",
+        "rimraf": "^6.0.1"
+    }
+}
