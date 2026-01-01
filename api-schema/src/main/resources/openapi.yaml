@@ -16,6 +16,7 @@ security: []
 
 paths:
   /games:
+    description: Endpoints for creating new Connect Four games
     post:
       summary: Create a new game
       operationId: createGame
@@ -36,6 +37,7 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
 
   /games/{id}:
+    description: Endpoints for retrieving and deleting a specific game by ID
     get:
       summary: Get game state
       operationId: getGame
@@ -87,6 +89,7 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
 
   /games/{id}/moves:
+    description: Endpoints for making moves in a specific game
     post:
       summary: Make a move
       operationId: makeMove
