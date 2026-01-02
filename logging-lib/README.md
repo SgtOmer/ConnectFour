@@ -22,15 +22,10 @@ dependencies {
 
 ## Configuration
 
-This library provides a base Log4j2 configuration. To use it, you must explicitly point to it in your application's `application.properties`.
+The library automatically sets the default logging configuration (`classpath:log4j2-base.yaml`) if you haven't defined your own `logging.config`.
 
 ### Basic Usage
-
-Set the `logging.config` property to use the library's base configuration:
-
-```properties
-logging.config=classpath:log4j2-base.yaml
-```
+**Zero configuration required.** Just run your application!
 
 ### Extending Configuration
 

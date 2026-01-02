@@ -23,7 +23,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * Tests the filter's behavior in a real Spring Boot web context.
  * </p>
  */
-@SpringBootTest(classes = TraceIdFilterIntegrationTest.TestConfig.class, properties = "logging.config=classpath:log4j2-base.yaml")
+@SpringBootTest(classes = TraceIdFilterIntegrationTest.TestConfig.class)
 @AutoConfigureMockMvc
 @DisplayName("TraceIdFilter Integration")
 class TraceIdFilterIntegrationTest {
