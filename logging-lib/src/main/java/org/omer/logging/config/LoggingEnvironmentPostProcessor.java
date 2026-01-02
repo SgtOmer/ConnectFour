@@ -17,25 +17,30 @@ import java.util.Map;
  * </p>
  */
 public class LoggingEnvironmentPostProcessor implements EnvironmentPostProcessor {
-
     private static final String LOGGING_CONFIG_PROPERTY = "logging.config";
     private static final String DEFAULT_LOGGING_CONFIG = "classpath:log4j2-base.yaml";
 
+    /**
+     * Checks if the logging configuration is set, and if not, applies the default
+     * configuration.
+     * <p>
+     * The default configuration is added as a low-priority property source
+     * ("logging-lib-default")
+     * using
+     * {@link org.springframework.core.env.MutablePropertySources#addLast(org.springframework.core.env.PropertySource)}.
+     * This ensures that while we provide a default, any explicit configuration
+     * (command line,
+     * application.properties, etc.) will still take precedence if it exists.
+     * </p>
+     *
+     * @param environment the environment to post-process
+     * @param application the application to which the environment belongs
+     */
     @Override
     public void postProcessEnvironment(ConfigurableEnvironment environment, SpringApplication application) {
         if (!environment.containsProperty(LOGGING_CONFIG_PROPERTY)) {
             Map<String, Object> map = new HashMap<>();
             map.put(LOGGING_CONFIG_PROPERTY, DEFAULT_LOGGING_CONFIG);
-            // Add as a low-priority property source so it can be overridden by other
-            // sources if needed
-            // though we checked containsProperty, adding it explicitly ensures it's
-            // available.
-            // Using addLast ensures command line or app properties (which are loaded) take
-            // precedence if they existed but were null?
-            // Actually, containsProperty checks all sources. If it's missing, we add it.
-            // We add it to the end (lowest priority) or start?
-            // Since we established it's missing, adding it anywhere works.
-            // But to be "default", it implies lowest priority.
             environment.getPropertySources().addLast(new MapPropertySource("logging-lib-default", map));
         }
     }
