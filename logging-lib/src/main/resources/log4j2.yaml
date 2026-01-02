@@ -1,0 +1,67 @@
+Configuration:
+  status: WARN
+  Properties:
+    Property:
+      - name: LOG_PATTERN
+        value: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%-5level] [%pid] [%X{traceId}] [%t] %c{1.} - %m%n%ex"
+      - name: LOG_PATH
+        value: logs
+      - name: LOG_FILE_NAME
+        value: "${spring:spring.application.name:-service}"
+
+  Appenders:
+    Console:
+      name: Console
+      target: SYSTEM_OUT
+      PatternLayout:
+        pattern: "${LOG_PATTERN}"
+      ThresholdFilter:
+        level: INFO
+        onMatch: ACCEPT
+        onMismatch: DENY
+
+    RollingFile:
+      name: RollingFile
+      fileName: "${LOG_PATH}/${LOG_FILE_NAME}.log"
+      filePattern: "${LOG_PATH}/${LOG_FILE_NAME}-%d{yyyy-MM-dd}-%i.log.gz"
+      PatternLayout:
+        pattern: "${LOG_PATTERN}"
+      ThresholdFilter:
+        level: DEBUG
+        onMatch: ACCEPT
+        onMismatch: DENY
+      Policies:
+        TimeBasedTriggeringPolicy:
+          interval: 1
+          modulate: true
+        SizeBasedTriggeringPolicy:
+          size: 100MB
+      DefaultRolloverStrategy:
+        max: 30
+        Delete:
+          basePath: "${LOG_PATH}"
+          maxDepth: 1
+          IfFileName:
+            glob: "${LOG_FILE_NAME}-*.log.gz"
+          IfLastModified:
+            age: 30d
+
+  Loggers:
+    AsyncLogger:
+      - name: org.omer
+        level: DEBUG
+        additivity: false
+        AppenderRef:
+          - ref: Console
+          - ref: RollingFile
+      - name: org.springframework
+        level: INFO
+        additivity: false
+        AppenderRef:
+          - ref: Console
+          - ref: RollingFile
+    AsyncRoot:
+      level: INFO
+      AppenderRef:
+        - ref: Console
+        - ref: RollingFile

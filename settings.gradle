@@ -1,3 +1,4 @@
 rootProject.name = 'ConnectFour'
 include 'Engine'
 include 'api-schema'
+include 'logging-lib'

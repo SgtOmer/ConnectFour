@@ -22,3 +22,6 @@ gradle-app.setting
 
 # Intellij
 .idea/
+logs/
+*.log
+bin/
