@@ -8,14 +8,18 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.omer.connectfour.api.model.GameResponse;
+import org.omer.connectfour.api.model.GameStatus;
 import org.omer.connectfour.api.model.MoveRequest;
 import org.omer.connectfour.api.model.MoveResponse;
 import org.omer.connectfour.bot.Bot;
 import org.omer.connectfour.model.Board;
 import org.omer.connectfour.model.Game;
 import org.omer.connectfour.repository.GameRepository;
+import org.omer.connectfour.exception.IllegalMoveException;
 import org.omer.connectfour.utils.Constants;
 
+import java.util.ArrayList;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -26,7 +30,6 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class GameServiceTest {
-
     @Mock
     private GameRepository gameRepository;
 
@@ -49,53 +52,86 @@ class GameServiceTest {
     @Test
     @DisplayName("Should create game")
     void shouldCreateGame() {
-        when(gameRepository.createGame()).thenReturn(gameId);
+        when(gameRepository.save(any(Game.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         UUID result = gameService.createGame();
 
         assertAll("Create Game",
-                () -> assertThat(result).as("Created game ID should match").isEqualTo(gameId),
-                () -> verify(gameRepository).createGame());
+                () -> assertThat(result).as("Created game ID should not be null").isNotNull(),
+                () -> verify(gameRepository).save(any(Game.class)));
     }
 
     @Test
     @DisplayName("Should get game response")
     void shouldGetGameResponse() {
-        when(gameRepository.getGame(gameId)).thenReturn(game);
-        when(gameMapper.toGameResponse(game)).thenReturn(new GameResponse());
+        when(gameRepository.findById(gameId)).thenReturn(Optional.of(game));
+        when(gameMapper.mapBoard(any())).thenReturn(new ArrayList<>());
+        when(gameMapper.determineGameStatus(game)).thenReturn(GameStatus.ONGOING);
 
-        GameResponse result = gameService.getGameResponse(gameId);
+        Optional<GameResponse> result = gameService.getGameResponse(gameId);
 
         assertAll("Get Game Response",
-                () -> assertThat(result).as("Game response should not be null").isNotNull(),
-                () -> verify(gameMapper).toGameResponse(game));
+                () -> assertThat(result).as("Game response should be present").isPresent(),
+                () -> assertThat(result.get().getStatus()).as("Status should be ONGOING")
+                        .isEqualTo(GameStatus.ONGOING));
+    }
+
+    @Test
+    @DisplayName("Should return empty Optional when game not found")
+    void shouldReturnEmptyWhenGameNotFound() {
+        when(gameRepository.findById(gameId)).thenReturn(Optional.empty());
+
+        Optional<GameResponse> result = gameService.getGameResponse(gameId);
+
+        assertThat(result).isEmpty();
     }
 
     @Test
     @DisplayName("Should make move successfully")
-    void shouldMakeMove() {
+    void shouldMakeMove() throws IllegalMoveException {
         MoveRequest request = new MoveRequest().column(0);
-        when(gameRepository.getGame(gameId)).thenReturn(game);
-        when(gameMapper.createMoveResponse(any(), anyBoolean(), any(), any(), any(), any()))
-                .thenReturn(new MoveResponse());
+        when(gameRepository.findById(gameId)).thenReturn(Optional.of(game));
+        when(gameMapper.determineGameStatus(game)).thenReturn(GameStatus.ONGOING);
 
-        MoveResponse response = gameService.makeMove(gameId, request);
+        Optional<MoveResponse> response = gameService.makeMove(gameId, request);
 
         assertAll("Make Move Verification",
-                () -> assertThat(response).as("Move response should not be null").isNotNull(),
-                // Verify Board state changed (Player move set)
+                () -> assertThat(response).as("Move response should be present").isPresent(),
                 () -> assertThat(game.getBoard().getBoard()[Constants.ROWS - 1][0])
                         .as("Board cell 0,0 should be X after move").isEqualTo(Constants.X_ON_BOARD),
-                // Verify Logic Called Mapper
-                () -> verify(gameMapper).createMoveResponse(any(), eq(true), any(), any(), any(), any()));
+                () -> assertThat(response.get().getStatus()).as("Status should be ONGOING")
+                        .isEqualTo(GameStatus.ONGOING));
     }
 
     @Test
-    @DisplayName("Should throw exception on invalid move")
+    @DisplayName("Should throw exception on invalid column")
     void shouldThrowOnInvalidMove() {
-        MoveRequest request = new MoveRequest().column(99); // Invalid column
-        when(gameRepository.getGame(gameId)).thenReturn(game);
+        MoveRequest request = new MoveRequest().column(99);
+        when(gameRepository.findById(gameId)).thenReturn(Optional.of(game));
 
-        assertThrows(IllegalArgumentException.class, () -> gameService.makeMove(gameId, request));
+        IllegalMoveException exception = assertThrows(IllegalMoveException.class,
+                () -> gameService.makeMove(gameId, request));
+        assertThat(exception.getReason()).isEqualTo(IllegalMoveException.Reason.COLUMN_NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("Should return empty Optional when making move on non-existent game")
+    void shouldReturnEmptyOnMoveForNonExistentGame() throws IllegalMoveException {
+        MoveRequest request = new MoveRequest().column(0);
+        when(gameRepository.findById(gameId)).thenReturn(Optional.empty());
+
+        Optional<MoveResponse> response = gameService.makeMove(gameId, request);
+
+        assertThat(response).isEmpty();
+    }
+
+    @Test
+    @DisplayName("Should return true for existing game")
+    void shouldCheckGameExists() {
+        when(gameRepository.existsById(gameId)).thenReturn(true);
+
+        boolean exists = gameService.gameExists(gameId);
+
+        assertThat(exists).isTrue();
     }
 }

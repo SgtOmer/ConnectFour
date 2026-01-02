@@ -9,7 +9,7 @@ description: Critical project guidelines and automation rules. MUST be followed 
 ## Tool Usage
 - **Gradle**: Always use the system-installed `gradle` command. 
   - ❌ DOES NOT USE: `./gradlew`, `gradle wrapper`.
-- **Git**: Use standard git commands.
+- **Git**: Use standard git commands. Each new feature should be created in a seperate branch which will be merged upon completion. Branch name format: "omera/<feature_name>".
 
 ## Automation Rules
 
@@ -38,9 +38,31 @@ Any command that modifies persistent state, deletes data, or interacts with remo
 - **Assertions**: Use **Google Truth** or **AssertJ** (`assertThat(...)`) for all assertions.
   - ❌ `assertEquals`, `assertTrue` (JUnit)
   - ✅ `assertThat(actual).isEqualTo(expected)`
-  - ✅ Use `assertAll` for multiple independent assertions, each should have its own message in that case.
+  - ✅ Use `assertAll` for multiple independent assertions, each should have its own `.as()` message.
+  - Single-assertion tests do NOT need `.as()` messages - the test name is sufficient.
 
 ### Libraries & Frameworks
 - **Lombok**: Use extensively (`@RequiredArgsConstructor`, `@Data`, etc.).
 - **Logging**: Use **Log4j2** (`@Log4j2`) for logging.
   - ❌ `@Slf4j`
+
+## Code Style
+
+### Whitespace & Formatting
+- **Empty lines after if/else blocks**: Add an empty line after if blocks (or after the corresponding else) before continuing code:
+  ```java
+  if (condition) {
+      doSomething();
+  }
+
+  continueCode();
+  ```
+- **No empty line after class declaration**: Code should start immediately after the class declaration:
+  ```java
+  public class MyClass {
+      public void myMethod() {  // ✅ No empty line before first member
+  ```
+  
+### Documentation Style
+- **Enum values**: Do NOT document individual enum values unless truly non-obvious. Self-explanatory names are preferred.
+- **Private methods**: No Javadocs needed unless they contain complex/important logic.

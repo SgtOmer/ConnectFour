@@ -7,14 +7,16 @@ import org.omer.connectfour.api.model.GameStatus;
 import org.omer.connectfour.api.model.MoveRequest;
 import org.omer.connectfour.api.model.MoveResponse;
 import org.omer.connectfour.api.model.Position;
-import org.omer.connectfour.api.model.WinnerEnum;
+import org.omer.connectfour.bot.Bot;
+import org.omer.connectfour.exception.IllegalMoveException;
+import org.omer.connectfour.model.Board;
 import org.omer.connectfour.model.Game;
 import org.omer.connectfour.repository.GameRepository;
 import org.omer.connectfour.utils.Constants;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.IntStream;
 
 import static org.omer.connectfour.utils.Constants.*;
 
@@ -35,32 +37,40 @@ public class GameService {
      * @return The UUID of the created game.
      */
     public UUID createGame() {
-        log.info("Creating new game via service");
-        return gameRepository.createGame();
+        log.info("Creating new game");
+
+        Board board = new Board(Constants.ROWS, Constants.COLS);
+        Bot bot = new Bot(board, O_ON_BOARD);
+        Game game = new Game(board, bot);
+
+        gameRepository.save(game);
+        log.info("Game {} created successfully", game.getUuid());
+
+        return game.getUuid();
     }
 
     /**
      * Retrieves the game state mapped to a response object.
      *
      * @param id The game UUID.
-     * @return The GameResponse DTO, or null if not found.
+     * @return An Optional containing the GameResponse if found, empty otherwise.
      */
-    public GameResponse getGameResponse(UUID id) {
-        Game game = gameRepository.getGame(id);
-        if (game == null) {
-            return null;
-        }
-        return gameMapper.toGameResponse(game);
+    public Optional<GameResponse> getGameResponse(UUID id) {
+        return gameRepository.findById(id)
+                .map(game -> new GameResponse()
+                        .id(game.getUuid())
+                        .board(gameMapper.mapBoard(game.getBoard().getBoard()))
+                        .status(gameMapper.determineGameStatus(game)));
     }
 
     /**
-     * Retrieves the internal game entity.
+     * Checks if a game exists.
      *
      * @param id The game UUID.
-     * @return The Game entity.
+     * @return True if the game exists, false otherwise.
      */
-    public Game getGame(UUID id) {
-        return gameRepository.getGame(id);
+    public boolean gameExists(UUID id) {
+        return gameRepository.existsById(id);
     }
 
     /**
@@ -70,7 +80,7 @@ public class GameService {
      */
     public void removeGame(UUID id) {
         log.debug("Removing game {}", id);
-        gameRepository.removeGame(id);
+        gameRepository.deleteById(id);
     }
 
     /**
@@ -78,59 +88,63 @@ public class GameService {
      *
      * @param id          The game UUID.
      * @param moveRequest The details of the move (column).
-     * @return The result of the move including updated board state, or null if game
-     *         not found.
-     * @throws IllegalArgumentException if the move is invalid.
+     * @return An Optional containing the MoveResponse if game found, empty
+     *         otherwise.
+     * @throws IllegalMoveException if the move is invalid (column full or out of
+     *                              bounds).
      */
-    public MoveResponse makeMove(UUID id, MoveRequest moveRequest) {
-        Game game = gameRepository.getGame(id);
-        if (game == null) {
-            return null;
+    public Optional<MoveResponse> makeMove(UUID id, MoveRequest moveRequest) throws IllegalMoveException {
+        Optional<Game> gameOpt = gameRepository.findById(id);
+        if (gameOpt.isEmpty()) {
+            return Optional.empty();
         }
 
-        // Validate basic move legality using public isLegal
-        // Note: isLegal checks column range and if column is full
-        if (!game.getBoard().isLegal(moveRequest.getColumn())) {
-            log.warn("Invalid move attempt in game {} col {}", id, moveRequest.getColumn());
-            throw new IllegalArgumentException("Invalid move");
+        Game game = gameOpt.get();
+        validateMove(id, game.getBoard(), moveRequest.getColumn());
+
+        return Optional.of(processTurn(game, moveRequest.getColumn()));
+    }
+
+    private void validateMove(UUID id, Board board, int column) throws IllegalMoveException {
+        if (column < 0 || column >= board.getCols()) {
+            log.error("Invalid move in game {}: column {} does not exist", id, column);
+            throw new IllegalMoveException(
+                    "Column " + column + " does not exist",
+                    IllegalMoveException.Reason.COLUMN_NOT_FOUND);
         }
 
-        // Execute Player Move
-        int playerCol = moveRequest.getColumn();
+        if (board.getLowest(column) == -1) {
+            log.warn("Invalid move in game {}: column {} is full", id, column);
+            throw new IllegalMoveException(
+                    "Column " + column + " is full",
+                    IllegalMoveException.Reason.COLUMN_FULL);
+        }
+    }
 
-        // Since getLowest is private, we must calculate the row ourselves.
-        // We can inspect the board to find the lowest empty spot.
-        int playerRow = game.getBoard().getLowest(playerCol);
+    private MoveResponse processTurn(Game game, int playerCol) {
+        Board board = game.getBoard();
 
-        game.getBoard().setMove(playerCol);
+        // Player move
+        executeMove(board, playerCol);
 
-        Position playerPos = new Position().row(playerRow).column(playerCol);
-
-        int winner = game.getBoard().winner();
-        if (winner == X_WON) {
-            return gameMapper.createMoveResponse(game, true, playerPos, null, GameStatus.PLAYER_WON, WinnerEnum.PLAYER);
+        if (board.winner() == X_WON) {
+            return new MoveResponse().status(GameStatus.PLAYER_WON);
         }
 
-        if (game.getBoard().isFull()) {
-            return gameMapper.createMoveResponse(game, true, playerPos, null, GameStatus.DRAW, null);
+        if (board.isFull()) {
+            return new MoveResponse().status(GameStatus.DRAW);
         }
 
-        // Execute Bot Move
+        // Bot move
         int botCol = game.getBot().makeMove(0, org.omer.connectfour.enums.Player.BOT);
-        int botRow = game.getBoard().getLowest(botCol);
+        Position botPos = executeMove(board, botCol);
 
-        game.getBoard().setMove(botCol);
-        Position botPos = new Position().row(botRow).column(botCol);
+        return new MoveResponse().botMove(botPos).status(gameMapper.determineGameStatus(game));
+    }
 
-        winner = game.getBoard().winner();
-        if (winner == O_WON) {
-            return gameMapper.createMoveResponse(game, true, playerPos, botPos, GameStatus.BOT_WON, WinnerEnum.BOT);
-        }
-
-        if (game.getBoard().isFull()) {
-            return gameMapper.createMoveResponse(game, true, playerPos, botPos, GameStatus.DRAW, null);
-        }
-
-        return gameMapper.createMoveResponse(game, true, playerPos, botPos, GameStatus.PLAYER_TURN, null);
+    private Position executeMove(Board board, int column) {
+        int row = board.getLowest(column);
+        board.setMove(column);
+        return new Position().row(row).column(column);
     }
 }
