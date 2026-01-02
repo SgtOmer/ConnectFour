@@ -7,10 +7,15 @@ import org.omer.connectfour.enums.Player;
 
 import java.util.UUID;
 
+/**
+ * Represents a Connect Four game session with board, bot, and unique
+ * identifier.
+ */
 @Getter
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Game {
-    @EqualsAndHashCode.Include private final UUID uuid;
+    @EqualsAndHashCode.Include
+    private final UUID uuid;
     private final Board board;
     private final Bot bot;
 

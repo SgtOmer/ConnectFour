@@ -12,10 +12,11 @@ import org.omer.connectfour.api.model.GameStatus;
 import org.omer.connectfour.api.model.MoveRequest;
 import org.omer.connectfour.api.model.MoveResponse;
 import org.omer.connectfour.bot.Bot;
+import org.omer.connectfour.exception.GameNotFoundException;
+import org.omer.connectfour.exception.IllegalMoveException;
 import org.omer.connectfour.model.Board;
 import org.omer.connectfour.model.Game;
 import org.omer.connectfour.repository.GameRepository;
-import org.omer.connectfour.exception.IllegalMoveException;
 import org.omer.connectfour.utils.Constants;
 
 import java.util.ArrayList;
@@ -23,11 +24,16 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+/**
+ * Unit tests for GameService.
+ * Tests service layer business logic with mocked repository.
+ */
 @ExtendWith(MockitoExtension.class)
 class GameServiceTest {
     @Mock
@@ -68,38 +74,38 @@ class GameServiceTest {
         when(gameMapper.mapBoard(any())).thenReturn(new ArrayList<>());
         when(gameMapper.determineGameStatus(game)).thenReturn(GameStatus.ONGOING);
 
-        Optional<GameResponse> result = gameService.getGameResponse(gameId);
+        GameResponse result = gameService.getGameResponse(gameId);
 
         assertAll("Get Game Response",
-                () -> assertThat(result).as("Game response should be present").isPresent(),
-                () -> assertThat(result.get().getStatus()).as("Status should be ONGOING")
+                () -> assertThat(result).as("Game response should not be null").isNotNull(),
+                () -> assertThat(result.getStatus()).as("Status should be ONGOING")
                         .isEqualTo(GameStatus.ONGOING));
     }
 
     @Test
-    @DisplayName("Should return empty Optional when game not found")
-    void shouldReturnEmptyWhenGameNotFound() {
+    @DisplayName("Should throw GameNotFoundException when game not found")
+    void shouldThrowWhenGameNotFound() {
         when(gameRepository.findById(gameId)).thenReturn(Optional.empty());
 
-        Optional<GameResponse> result = gameService.getGameResponse(gameId);
-
-        assertThat(result).isEmpty();
+        assertThatThrownBy(() -> gameService.getGameResponse(gameId))
+                .isInstanceOf(GameNotFoundException.class)
+                .hasMessageContaining(gameId.toString());
     }
 
     @Test
     @DisplayName("Should make move successfully")
-    void shouldMakeMove() throws IllegalMoveException {
+    void shouldMakeMove() {
         MoveRequest request = new MoveRequest().column(0);
         when(gameRepository.findById(gameId)).thenReturn(Optional.of(game));
         when(gameMapper.determineGameStatus(game)).thenReturn(GameStatus.ONGOING);
 
-        Optional<MoveResponse> response = gameService.makeMove(gameId, request);
+        MoveResponse response = gameService.makeMove(gameId, request);
 
         assertAll("Make Move Verification",
-                () -> assertThat(response).as("Move response should be present").isPresent(),
+                () -> assertThat(response).as("Move response should not be null").isNotNull(),
                 () -> assertThat(game.getBoard().getBoard()[Constants.ROWS - 1][0])
                         .as("Board cell 0,0 should be X after move").isEqualTo(Constants.X_ON_BOARD),
-                () -> assertThat(response.get().getStatus()).as("Status should be ONGOING")
+                () -> assertThat(response.getStatus()).as("Status should be ONGOING")
                         .isEqualTo(GameStatus.ONGOING));
     }
 
@@ -111,27 +117,36 @@ class GameServiceTest {
 
         IllegalMoveException exception = assertThrows(IllegalMoveException.class,
                 () -> gameService.makeMove(gameId, request));
+
         assertThat(exception.getReason()).isEqualTo(IllegalMoveException.Reason.COLUMN_NOT_FOUND);
     }
 
     @Test
-    @DisplayName("Should return empty Optional when making move on non-existent game")
-    void shouldReturnEmptyOnMoveForNonExistentGame() throws IllegalMoveException {
+    @DisplayName("Should throw GameNotFoundException when making move on non-existent game")
+    void shouldThrowOnMoveForNonExistentGame() {
         MoveRequest request = new MoveRequest().column(0);
         when(gameRepository.findById(gameId)).thenReturn(Optional.empty());
 
-        Optional<MoveResponse> response = gameService.makeMove(gameId, request);
-
-        assertThat(response).isEmpty();
+        assertThatThrownBy(() -> gameService.makeMove(gameId, request))
+                .isInstanceOf(GameNotFoundException.class);
     }
 
     @Test
-    @DisplayName("Should return true for existing game")
-    void shouldCheckGameExists() {
+    @DisplayName("Should remove game successfully")
+    void shouldRemoveGame() {
         when(gameRepository.existsById(gameId)).thenReturn(true);
 
-        boolean exists = gameService.gameExists(gameId);
+        gameService.removeGame(gameId);
 
-        assertThat(exists).isTrue();
+        verify(gameRepository).deleteById(gameId);
+    }
+
+    @Test
+    @DisplayName("Should throw GameNotFoundException when removing non-existent game")
+    void shouldThrowWhenRemovingNonExistentGame() {
+        when(gameRepository.existsById(gameId)).thenReturn(false);
+
+        assertThatThrownBy(() -> gameService.removeGame(gameId))
+                .isInstanceOf(GameNotFoundException.class);
     }
 }

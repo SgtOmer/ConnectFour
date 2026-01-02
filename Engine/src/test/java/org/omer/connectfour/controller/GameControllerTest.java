@@ -7,6 +7,7 @@ import org.omer.connectfour.api.model.GameStatus;
 import org.omer.connectfour.api.model.MoveRequest;
 import org.omer.connectfour.api.model.MoveResponse;
 import org.omer.connectfour.api.model.Position;
+import org.omer.connectfour.exception.GameNotFoundException;
 import org.omer.connectfour.exception.IllegalMoveException;
 import org.omer.connectfour.service.GameService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +16,6 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.util.Optional;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -24,9 +24,12 @@ import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(GameController.class)
+/**
+ * Unit tests for GameController using MockMvc.
+ * Tests REST API behavior with mocked service layer.
+ */
+@WebMvcTest({ GameController.class, GlobalExceptionHandler.class })
 class GameControllerTest {
-
         @Autowired
         private MockMvc mockMvc;
 
@@ -50,7 +53,7 @@ class GameControllerTest {
                 UUID uuid = UUID.randomUUID();
                 GameResponse response = new GameResponse().id(uuid).status(GameStatus.ONGOING);
 
-                when(gameService.getGameResponse(uuid)).thenReturn(Optional.of(response));
+                when(gameService.getGameResponse(uuid)).thenReturn(response);
 
                 mockMvc.perform(get("/games/" + uuid))
                                 .andExpect(status().isOk())
@@ -59,20 +62,22 @@ class GameControllerTest {
         }
 
         @Test
-        @DisplayName("GET /games/{id} should return 404 when not found")
+        @DisplayName("GET /games/{id} should return 404 with ErrorResponse when not found")
         void shouldReturn404WhenGameNotFound() throws Exception {
                 UUID uuid = UUID.randomUUID();
-                when(gameService.getGameResponse(uuid)).thenReturn(Optional.empty());
+                when(gameService.getGameResponse(uuid)).thenThrow(new GameNotFoundException(uuid));
 
                 mockMvc.perform(get("/games/" + uuid))
-                                .andExpect(status().isNotFound());
+                                .andExpect(status().isNotFound())
+                                .andExpect(jsonPath("$.error").value("GAME_NOT_FOUND"))
+                                .andExpect(jsonPath("$.message").exists());
         }
 
         @Test
         @DisplayName("DELETE /games/{id} should return 204 when game exists")
         void shouldDeleteGameWhenExists() throws Exception {
                 UUID uuid = UUID.randomUUID();
-                when(gameService.gameExists(uuid)).thenReturn(true);
+                doNothing().when(gameService).removeGame(uuid);
 
                 mockMvc.perform(delete("/games/" + uuid))
                                 .andExpect(status().isNoContent());
@@ -84,10 +89,11 @@ class GameControllerTest {
         @DisplayName("DELETE /games/{id} should return 404 when not found")
         void shouldReturn404WhenDeletingNonExistentGame() throws Exception {
                 UUID uuid = UUID.randomUUID();
-                when(gameService.gameExists(uuid)).thenReturn(false);
+                doThrow(new GameNotFoundException(uuid)).when(gameService).removeGame(uuid);
 
                 mockMvc.perform(delete("/games/" + uuid))
-                                .andExpect(status().isNotFound());
+                                .andExpect(status().isNotFound())
+                                .andExpect(jsonPath("$.error").value("GAME_NOT_FOUND"));
         }
 
         @Test
@@ -97,7 +103,7 @@ class GameControllerTest {
                 Position botPos = new Position().row(5).column(3);
                 MoveResponse response = new MoveResponse().botMove(botPos).status(GameStatus.ONGOING);
 
-                when(gameService.makeMove(eq(uuid), any(MoveRequest.class))).thenReturn(Optional.of(response));
+                when(gameService.makeMove(eq(uuid), any(MoveRequest.class))).thenReturn(response);
 
                 mockMvc.perform(post("/games/" + uuid + "/moves")
                                 .contentType(MediaType.APPLICATION_JSON)
@@ -108,18 +114,20 @@ class GameControllerTest {
         }
 
         @Test
-        @DisplayName("POST /games/{id}/moves should return 400 on invalid column")
+        @DisplayName("POST /games/{id}/moves should return 400 with ErrorResponse on invalid move")
         void shouldReturnBadRequestOnInvalidColumn() throws Exception {
                 UUID uuid = UUID.randomUUID();
 
                 when(gameService.makeMove(eq(uuid), any(MoveRequest.class)))
-                                .thenThrow(new IllegalMoveException("Column 99 does not exist",
-                                                IllegalMoveException.Reason.COLUMN_NOT_FOUND));
+                                .thenThrow(new IllegalMoveException("Column 3 is full",
+                                                IllegalMoveException.Reason.COLUMN_FULL));
 
                 mockMvc.perform(post("/games/" + uuid + "/moves")
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content("{\"column\": 99}"))
-                                .andExpect(status().isBadRequest());
+                                .content("{\"column\": 3}"))
+                                .andExpect(status().isBadRequest())
+                                .andExpect(jsonPath("$.error").value("INVALID_MOVE"))
+                                .andExpect(jsonPath("$.message").value("Column 3 is full"));
         }
 
         @Test
@@ -134,7 +142,8 @@ class GameControllerTest {
                 mockMvc.perform(post("/games/" + uuid + "/moves")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content("{\"column\": 0}"))
-                                .andExpect(status().isBadRequest());
+                                .andExpect(status().isBadRequest())
+                                .andExpect(jsonPath("$.error").value("INVALID_MOVE"));
         }
 
         @Test
@@ -142,11 +151,13 @@ class GameControllerTest {
         void shouldReturnNotFoundWhenGameMissing() throws Exception {
                 UUID uuid = UUID.randomUUID();
 
-                when(gameService.makeMove(eq(uuid), any(MoveRequest.class))).thenReturn(Optional.empty());
+                when(gameService.makeMove(eq(uuid), any(MoveRequest.class)))
+                                .thenThrow(new GameNotFoundException(uuid));
 
                 mockMvc.perform(post("/games/" + uuid + "/moves")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content("{\"column\": 0}"))
-                                .andExpect(status().isNotFound());
+                                .andExpect(status().isNotFound())
+                                .andExpect(jsonPath("$.error").value("GAME_NOT_FOUND"));
         }
 }

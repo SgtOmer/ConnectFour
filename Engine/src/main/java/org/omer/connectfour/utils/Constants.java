@@ -2,9 +2,11 @@ package org.omer.connectfour.utils;
 
 import lombok.experimental.UtilityClass;
 
+/**
+ * Constants for board dimensions, cell values, and winner codes.
+ */
 @UtilityClass
 public class Constants {
-
     public final static char NULL_ON_BOARD = '0';
     public final static char X_ON_BOARD = 'X';
     public final static char O_ON_BOARD = 'Y';

@@ -8,6 +8,7 @@ import org.omer.connectfour.api.model.MoveRequest;
 import org.omer.connectfour.api.model.MoveResponse;
 import org.omer.connectfour.api.model.Position;
 import org.omer.connectfour.bot.Bot;
+import org.omer.connectfour.exception.GameNotFoundException;
 import org.omer.connectfour.exception.IllegalMoveException;
 import org.omer.connectfour.model.Board;
 import org.omer.connectfour.model.Game;
@@ -15,7 +16,6 @@ import org.omer.connectfour.repository.GameRepository;
 import org.omer.connectfour.utils.Constants;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
 import java.util.UUID;
 
 import static org.omer.connectfour.utils.Constants.*;
@@ -53,32 +53,29 @@ public class GameService {
      * Retrieves the game state mapped to a response object.
      *
      * @param id The game UUID.
-     * @return An Optional containing the GameResponse if found, empty otherwise.
+     * @return The GameResponse.
+     * @throws GameNotFoundException if the game does not exist.
      */
-    public Optional<GameResponse> getGameResponse(UUID id) {
-        return gameRepository.findById(id)
-                .map(game -> new GameResponse()
-                        .id(game.getUuid())
-                        .board(gameMapper.mapBoard(game.getBoard().getBoard()))
-                        .status(gameMapper.determineGameStatus(game)));
-    }
+    public GameResponse getGameResponse(UUID id) {
+        Game game = findGameOrThrow(id);
 
-    /**
-     * Checks if a game exists.
-     *
-     * @param id The game UUID.
-     * @return True if the game exists, false otherwise.
-     */
-    public boolean gameExists(UUID id) {
-        return gameRepository.existsById(id);
+        return new GameResponse()
+                .id(game.getUuid())
+                .board(gameMapper.mapBoard(game.getBoard().getBoard()))
+                .status(gameMapper.determineGameStatus(game));
     }
 
     /**
      * Removes a game from the repository.
      *
      * @param id The game UUID.
+     * @throws GameNotFoundException if the game does not exist.
      */
     public void removeGame(UUID id) {
+        if (!gameRepository.existsById(id)) {
+            throw new GameNotFoundException(id);
+        }
+
         log.debug("Removing game {}", id);
         gameRepository.deleteById(id);
     }
@@ -88,24 +85,23 @@ public class GameService {
      *
      * @param id          The game UUID.
      * @param moveRequest The details of the move (column).
-     * @return An Optional containing the MoveResponse if game found, empty
-     *         otherwise.
-     * @throws IllegalMoveException if the move is invalid (column full or out of
-     *                              bounds).
+     * @return The MoveResponse with bot's move and game status.
+     * @throws GameNotFoundException if the game does not exist.
+     * @throws IllegalMoveException  if the move is invalid.
      */
-    public Optional<MoveResponse> makeMove(UUID id, MoveRequest moveRequest) throws IllegalMoveException {
-        Optional<Game> gameOpt = gameRepository.findById(id);
-        if (gameOpt.isEmpty()) {
-            return Optional.empty();
-        }
-
-        Game game = gameOpt.get();
+    public MoveResponse makeMove(UUID id, MoveRequest moveRequest) {
+        Game game = findGameOrThrow(id);
         validateMove(id, game.getBoard(), moveRequest.getColumn());
 
-        return Optional.of(processTurn(game, moveRequest.getColumn()));
+        return processTurn(game, moveRequest.getColumn());
     }
 
-    private void validateMove(UUID id, Board board, int column) throws IllegalMoveException {
+    private Game findGameOrThrow(UUID id) {
+        return gameRepository.findById(id)
+                .orElseThrow(() -> new GameNotFoundException(id));
+    }
+
+    private void validateMove(UUID id, Board board, int column) {
         if (column < 0 || column >= board.getCols()) {
             log.error("Invalid move in game {}: column {} does not exist", id, column);
             throw new IllegalMoveException(
@@ -145,6 +141,7 @@ public class GameService {
     private Position executeMove(Board board, int column) {
         int row = board.getLowest(column);
         board.setMove(column);
+
         return new Position().row(row).column(column);
     }
 }

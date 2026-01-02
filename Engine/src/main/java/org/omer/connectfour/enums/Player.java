@@ -3,6 +3,9 @@ package org.omer.connectfour.enums;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+/**
+ * Represents players in the game with values for minimax scoring.
+ */
 @AllArgsConstructor
 @Getter
 public enum Player {

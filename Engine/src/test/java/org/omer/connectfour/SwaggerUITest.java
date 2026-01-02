@@ -44,7 +44,7 @@ class SwaggerUITest {
     void openApiDocsShouldBeAccessible() throws Exception {
         mockMvc.perform(get(API_DOCS_ENDPOINT))
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath(JSON_PATH_OPENAPI).exists())
                 .andExpect(jsonPath(JSON_PATH_INFO).exists())
                 .andExpect(jsonPath(JSON_PATH_INFO_TITLE).exists());

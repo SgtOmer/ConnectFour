@@ -2,10 +2,10 @@ package org.omer.connectfour.exception;
 
 /**
  * Exception thrown when an illegal move is attempted in the game.
- * This is a checked exception to enforce explicit handling by callers.
+ * This is a runtime exception as it represents a client error handled
+ * by @ControllerAdvice.
  */
-public class IllegalMoveException extends Exception {
-
+public class IllegalMoveException extends RuntimeException {
     public enum Reason {
         COLUMN_NOT_FOUND,
         COLUMN_FULL
